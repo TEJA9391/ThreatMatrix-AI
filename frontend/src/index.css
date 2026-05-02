@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cyber-black: #020205;
+  --color-cyber-dark: rgba(10, 10, 15, 0.7);
+  --color-cyber-blue: #050a1f;
+  --color-cyber-neon: #00f3ff;
+  --color-cyber-purple: #bc13fe;
+  --color-cyber-green: #39ff14;
+  --color-cyber-red: #ff003c;
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-glass-bg: rgba(255, 255, 255, 0.03);
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-scan: scan 4s linear infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  @keyframes scan {
+    0% { transform: translateY(-100%); opacity: 0; }
+    50% { opacity: 0.5; }
+    100% { transform: translateY(100%); opacity: 0; }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-cyber-black text-slate-400 font-sans antialiased selection:bg-cyber-neon/40 selection:text-white;
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: radial-gradient(circle at center, #0a0a1a 0%, #020205 100%);
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/[0.03] border border-white/5 rounded-2xl backdrop-blur-xl transition-all duration-500 hover:border-white/10;
+    box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.2);
+  }
+  
+  .neon-border-cyan { @apply border border-cyber-neon/20 shadow-[0_0_10px_rgba(0,243,255,0.05)]; }
+  .neon-border-purple { @apply border border-cyber-purple/20 shadow-[0_0_10px_rgba(188,19,254,0.05)]; }
+  .neon-border-green { @apply border border-cyber-green/20 shadow-[0_0_10px_rgba(57,255,20,0.05)]; }
+
+  .cyber-button {
+    @apply relative overflow-hidden bg-white/5 border border-white/10 text-white font-medium py-2 px-6 rounded-lg transition-all duration-300 hover:bg-cyber-neon/80 hover:text-black hover:scale-105 active:scale-95;
+  }
+
+  .cyber-input {
+    @apply bg-white/5 border border-white/5 rounded-xl py-3 px-4 focus:outline-none focus:border-cyber-neon/40 transition-all text-white placeholder-slate-600;
+  }
+}
+
+.radar-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-cyber-neon), transparent);
+  width: 100%;
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.glow-text {
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+}
+
+.grid-bg {
+  background-image: linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #020205; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 243, 255, 0.4); }
