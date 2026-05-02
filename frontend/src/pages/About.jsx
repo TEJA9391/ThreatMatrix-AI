@@ -1,9 +1,9 @@
 import React from 'react';
 import { 
   ShieldCheck, Globe, Cpu, Mail, MapPin, 
-  Code2, Zap, Database, Terminal, 
+  Zap, Database, Terminal, 
   Users, Award, Shield, Activity, Lock, 
-  Github, Linkedin, ChevronRight, Sparkles, MessageSquare, Fingerprint, ExternalLink, Share2
+  ChevronRight, ArrowUpRight, User, Code
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -11,7 +11,7 @@ export default function About() {
   const technologies = [
     { name: 'Neural Kernel', icon: Cpu, desc: 'Advanced AI Inference Engine' },
     { name: 'Socket Mainnet', icon: Zap, desc: 'Real-time Telemetry Synchronization' },
-    { name: 'Core Interface', icon: Code2, desc: 'High-fidelity React 18 UI' },
+    { name: 'Core Interface', icon: Code, desc: 'High-fidelity React 18 UI' },
     { name: 'Secure Vault', icon: Lock, desc: 'Zero-Trust Protocol Implementation' },
   ];
 
@@ -47,7 +47,7 @@ export default function About() {
 
                <div className="flex flex-wrap gap-6">
                   <a href="https://github.com/TEJA9391" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-cyber-neon text-black font-black uppercase tracking-widest rounded-2xl flex items-center gap-3 hover:scale-105 active:scale-95 transition-all cursor-pointer">
-                     View Source <ExternalLink className="w-4 h-4" />
+                     View Source <ArrowUpRight className="w-4 h-4" />
                   </a>
                   <button className="px-8 py-4 bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest rounded-2xl hover:bg-white/10 transition-all cursor-pointer">
                      Intel Status
@@ -126,11 +126,11 @@ export default function About() {
 
                <div className="glass-card p-10 bg-white/[0.02] border-white/5 md:col-span-2 relative overflow-hidden group">
                   <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none group-hover:scale-110 transition-transform">
-                     <Fingerprint className="w-40 h-40 text-white" />
+                     <Activity className="w-40 h-40 text-white" />
                   </div>
                   <div className="flex items-center gap-6 mb-8">
                      <div className="p-4 bg-cyber-green/10 rounded-2xl border border-cyber-green/20">
-                        <MessageSquare className="w-8 h-8 text-cyber-green" />
+                        <Activity className="w-8 h-8 text-cyber-green" />
                      </div>
                      <div>
                         <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter">Direct Signal</h4>
@@ -139,10 +139,10 @@ export default function About() {
                   </div>
                   <div className="flex flex-wrap gap-4">
                      <a href="https://github.com/TEJA9391" target="_blank" rel="noopener noreferrer" className="p-4 bg-white/5 border border-white/10 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all flex items-center gap-3">
-                        <Share2 className="w-4 h-4" /> GITHUB_CORE
+                        <User className="w-4 h-4" /> GITHUB_CORE
                      </a>
                      <a href="https://linkedin.com/in/raviteja-boora" target="_blank" rel="noopener noreferrer" className="p-4 bg-white/5 border border-white/10 rounded-2xl text-white font-black uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all flex items-center gap-3">
-                        <Share2 className="w-4 h-4" /> LINKEDIN_AUTH
+                        <User className="w-4 h-4" /> LINKEDIN_AUTH
                      </a>
                   </div>
                </div>
@@ -154,7 +154,7 @@ export default function About() {
       <div className="text-center pt-20">
          <h2 className="text-2xl font-black text-white/5 uppercase tracking-[0.5em] italic mb-4">THREATMATRIX INTELLIGENCE</h2>
          <p className="text-[10px] font-black text-slate-700 uppercase tracking-[0.3em]">
-            © 2026 GLOBAL SOC MAINNET | ARCHITECTED BY BOORA RAVITEJA
+            (c) 2026 GLOBAL SOC MAINNET | ARCHITECTED BY BOORA RAVITEJA
          </p>
       </div>
     </motion.div>

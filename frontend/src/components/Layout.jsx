@@ -14,7 +14,7 @@ export default function Layout({ children }) {
   const [notification, setNotification] = useState(null);
 
   useEffect(() => {
-    if (user.notifications && events.length > 0) {
+    if (user?.notifications && events.length > 0) {
       const latest = events[0];
       if (latest.risk === 'High' || latest.risk === 'Critical' || latest.risk === 'Medium') {
         setNotification(latest);
@@ -22,7 +22,7 @@ export default function Layout({ children }) {
         return () => clearTimeout(timer);
       }
     }
-  }, [events, user.notifications]);
+  }, [events, user?.notifications]);
 
   return (
     <div className="min-h-screen bg-cyber-black text-slate-300 font-sans selection:bg-cyber-neon/30 selection:text-white relative">

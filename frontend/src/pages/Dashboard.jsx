@@ -13,7 +13,6 @@ import {
   Wifi,
   Database,
   Lock,
-  BrainCircuit,
   Terminal,
   ShieldCheck,
   CheckCircle2
@@ -181,7 +180,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 glass-card p-8 border-white/5 bg-black/40 relative overflow-hidden h-[450px]">
            <div className="flex items-center justify-between mb-8 relative z-10">
               <div className="flex items-center gap-3">
-                 <BrainCircuit className="w-6 h-6 text-cyber-neon animate-pulse" />
+                 <Cpu className="w-6 h-6 text-cyber-neon animate-pulse" />
                  <h3 className="text-xl font-black text-white uppercase tracking-widest italic leading-none">Intelligence Mesh</h3>
               </div>
               
