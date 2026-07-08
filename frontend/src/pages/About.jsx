@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  ShieldCheck, Globe, Cpu, Mail, MapPin, 
+  ShieldCheck, Cpu, Mail, MapPin, 
   Zap, Database, Terminal, 
   Users, Award, Shield, Activity, Lock, 
   ChevronRight, ArrowUpRight, User, Code
@@ -102,11 +102,10 @@ export default function About() {
             </p>
             
             <div className="space-y-3">
-               {[
-                 { icon: Mail, val: isAuthenticated ? user?.email : 'raviteja@threatmatrix.ai', label: 'OFFICIAL_EMAIL' },
-                 (isAuthenticated && user?.location) ? { icon: MapPin, val: user?.location, label: 'SOC_LOCATION' } : null,
-                 { icon: Globe, val: 'threatmatrix.ai', label: 'SYSTEM_URL' },
-               ].filter(Boolean).map((info, i) => (
+                {[
+                  { icon: Mail, val: isAuthenticated ? user?.email : 'raviteja@threatmatrix.ai', label: 'OFFICIAL_EMAIL' },
+                  (isAuthenticated && user?.location) ? { icon: MapPin, val: user?.location, label: 'SOC_LOCATION' } : null,
+                ].filter(Boolean).map((info, i) => (
                   <div key={i} className="flex items-center gap-5 p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors">
                      <info.icon className="w-4 h-4 text-cyber-neon shrink-0" />
                      <div>
