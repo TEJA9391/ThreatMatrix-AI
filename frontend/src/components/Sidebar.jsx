@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  LayoutDashboard, ShieldAlert, MailWarning, FileText, 
+  LayoutDashboard, Eye, MailWarning, FileText, 
   BarChart3, History, ShieldCheck, Bell, Settings, 
   User, MoreVertical, Activity, Zap, Cpu, Lock, ShieldX, Info
 } from 'lucide-react';
@@ -11,7 +11,7 @@ import { useUser } from '../context/UserContext';
 
 const navItems = [
   { path: '/', name: 'Dashboard', icon: LayoutDashboard },
-  { path: '/fraud', name: 'Fraud Detection', icon: ShieldAlert },
+  { path: '/darkweb', name: 'Dark Web Monitor', icon: Eye },
   { path: '/phishing', name: 'Phishing Detection', icon: MailWarning },
   { path: '/fake-news', name: 'Fake News Detection', icon: FileText },
   { path: '/analytics', name: 'Analytics', icon: BarChart3 },

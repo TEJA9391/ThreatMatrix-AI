@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
-import FraudDetection from './pages/FraudDetection';
+import DarkWebMonitor from './pages/DarkWebMonitor';
 import PhishingDetection from './pages/PhishingDetection';
 import FakeNewsDetection from './pages/FakeNewsDetection';
 import Analytics from './pages/Analytics';
@@ -19,7 +19,7 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/fraud" element={<FraudDetection />} />
+            <Route path="/darkweb" element={<DarkWebMonitor />} />
             <Route path="/phishing" element={<PhishingDetection />} />
             <Route path="/fake-news" element={<FakeNewsDetection />} />
             <Route path="/analytics" element={<Analytics />} />
