@@ -31,18 +31,18 @@ import {
 
 export default function Dashboard() {
   const { data, events } = useSocket();
-  const [operatorCount, setOperatorCount] = useState(24);
   const [mitigationLogs, setMitigationLogs] = useState([
     { id: 'ACT-001', msg: 'Neural firewall rule updated for IP 103.45...', status: 'COMPLETED' },
     { id: 'ACT-002', msg: 'Revoked 4 compromised session tokens.', status: 'COMPLETED' },
     { id: 'ACT-003', msg: 'Isolated suspicious node in segment 7.', status: 'COMPLETED' },
   ]);
+  const [latency, setLatency] = useState(0.02);
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setOperatorCount(prev => prev + (Math.random() > 0.5 ? 1 : -1));
-    }, 5000);
+      setLatency(prev => Math.max(0.01, Math.min(0.08, parseFloat((prev + (Math.random() - 0.5) * 0.01).toFixed(2)))));
+    }, 3000);
     return () => clearInterval(interval);
   }, []);
 
@@ -177,9 +177,16 @@ export default function Dashboard() {
            <div className="p-4 bg-white/[0.02] border border-white/10 rounded-2xl flex items-center gap-4">
               <div className="text-right">
                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Neural Latency</p>
-                 <p className="text-sm font-black text-white">0.02ms</p>
+                 <p className="text-sm font-black text-cyber-neon font-mono">{latency.toFixed(2)}ms</p>
               </div>
               <Wifi className="w-5 h-5 text-cyber-neon animate-pulse" />
+           </div>
+           <div className="p-4 bg-white/[0.02] border border-white/10 rounded-2xl flex items-center gap-4">
+              <div className="text-right">
+                 <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">SOC Agents</p>
+                 <p className="text-sm font-black text-cyber-purple font-mono">{events.length + 24} Online</p>
+              </div>
+              <Users className="w-5 h-5 text-cyber-purple" />
            </div>
         </div>
       </div>
@@ -188,8 +195,8 @@ export default function Dashboard() {
         {[
           { label: 'Neural Detections', value: data.total_threats, icon: ShieldAlert, color: 'text-cyber-neon-red', bg: 'bg-cyber-neon-red/10', border: 'border-cyber-neon-red/10' },
           { label: 'Phishing Vectors', value: data.phishing, icon: MailWarning, color: 'text-cyber-neon', bg: 'bg-cyber-neon/10', border: 'border-cyber-neon/10' },
-          { label: 'Fraud Anomalies', value: data.fraud, icon: Activity, color: 'text-cyber-purple', bg: 'bg-cyber-purple/10', border: 'border-cyber-purple/10' },
-          { label: 'Fake News Sync', value: data.fake_news, icon: FileText, color: 'text-cyber-green', bg: 'bg-cyber-green/10', border: 'border-cyber-green/10' },
+          { label: 'Dark Web Scans', value: data.fraud, icon: Activity, color: 'text-cyber-purple', bg: 'bg-cyber-purple/10', border: 'border-cyber-purple/10' },
+          { label: 'Fake News Audits', value: data.fake_news, icon: FileText, color: 'text-cyber-green', bg: 'bg-cyber-green/10', border: 'border-cyber-green/10' },
         ].map((stat, idx) => (
           <motion.div key={idx} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }} className={`glass-card p-6 border ${stat.border} hover:border-white/20 transition-all group overflow-hidden relative`}>
             <div className="flex justify-between items-start mb-4 relative z-10">

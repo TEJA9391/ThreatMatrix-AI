@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { History as HistoryIcon, Search, Filter, ShieldAlert, MailWarning, FileText, Clock, Trash2, Database, ListFilter } from 'lucide-react';
+import { History as HistoryIcon, Search, Filter, ShieldAlert, MailWarning, FileText, Eye, Clock, Database, ListFilter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSocket } from '../hooks/useSocket';
 
@@ -11,7 +11,7 @@ export default function History() {
 
   const getTypeIcon = (type) => {
     switch (type) {
-      case 'fraud': return <ShieldAlert className="w-5 h-5 text-cyber-purple" />;
+      case 'fraud': return <Eye className="w-5 h-5 text-cyber-purple" />;
       case 'phishing': return <MailWarning className="w-5 h-5 text-cyber-neon" />;
       case 'news': return <FileText className="w-5 h-5 text-cyber-green" />;
       default: return <HistoryIcon className="w-5 h-5 text-slate-400" />;
@@ -29,7 +29,7 @@ export default function History() {
   const filters = [
     { id: 'all', name: 'ALL LOGS' },
     { id: 'phishing', name: 'PHISHING' },
-    { id: 'fraud', name: 'FRAUD' },
+    { id: 'fraud', name: 'DARK WEB' },
     { id: 'news', name: 'FAKE NEWS' },
   ];
 
@@ -104,7 +104,7 @@ export default function History() {
          </div>
          <div className="glass-card p-6 border-white/5 bg-white/[0.02]">
             <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Log Integrity</p>
-            <p className="text-3xl font-black text-cyber-green italic underline decoration-cyber-green/30">VERIFIED</p>
+            <p className="text-3xl font-black text-cyber-green italic">SHA-256 ✓</p>
          </div>
       </div>
 

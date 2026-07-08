@@ -8,11 +8,14 @@
   --color-cyber-purple: #bc13fe;
   --color-cyber-green: #39ff14;
   --color-cyber-red: #ff003c;
+  --color-cyber-neon-red: #ff3131;
+  --color-cyber-amber: #f59e0b;
   --color-glass-border: rgba(255, 255, 255, 0.1);
   --color-glass-bg: rgba(255, 255, 255, 0.03);
 
   --animate-float: float 6s ease-in-out infinite;
   --animate-scan: scan 4s linear infinite;
+  --animate-pulse-ring: pulse-ring 2s ease-out infinite;
 
   @keyframes float {
     0%, 100% { transform: translateY(0); }
@@ -24,6 +27,22 @@
     50% { opacity: 0.5; }
     100% { transform: translateY(100%); opacity: 0; }
   }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 243, 255, 0.4); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(0, 243, 255, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 243, 255, 0); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 }
 
 @layer base {
@@ -34,27 +53,70 @@
     overflow-x: hidden;
     background: radial-gradient(circle at center, #0a0a1a 0%, #020205 100%);
   }
+
+  * {
+    scroll-behavior: smooth;
+  }
 }
 
 @layer components {
+  /* Base glass card — subtle */
   .glass-card {
     @apply bg-white/[0.03] border border-white/5 rounded-2xl backdrop-blur-xl transition-all duration-500 hover:border-white/10;
     box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.2);
   }
-  
+
+  /* Cyber card — stronger glow, used in detection pages */
+  .cyber-card {
+    @apply bg-white/[0.04] border border-white/10 rounded-2xl backdrop-blur-2xl transition-all duration-500;
+    box-shadow: 0 8px 40px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .cyber-card:hover {
+    @apply border-white/20;
+    box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.07);
+  }
+
   .neon-border-cyan { @apply border border-cyber-neon/20 shadow-[0_0_10px_rgba(0,243,255,0.05)]; }
   .neon-border-purple { @apply border border-cyber-purple/20 shadow-[0_0_10px_rgba(188,19,254,0.05)]; }
   .neon-border-green { @apply border border-cyber-green/20 shadow-[0_0_10px_rgba(57,255,20,0.05)]; }
+  .neon-border-red { @apply border border-cyber-neon-red/20 shadow-[0_0_10px_rgba(255,49,49,0.05)]; }
 
   .cyber-button {
-    @apply relative overflow-hidden bg-white/5 border border-white/10 text-white font-medium py-2 px-6 rounded-lg transition-all duration-300 hover:bg-cyber-neon/80 hover:text-black hover:scale-105 active:scale-95;
+    @apply relative overflow-hidden bg-white/5 border border-white/10 text-white font-medium py-2 px-6 rounded-lg transition-all duration-300 hover:bg-cyber-neon/80 hover:text-black hover:scale-105 active:scale-95 flex items-center justify-center gap-2;
   }
 
   .cyber-input {
-    @apply bg-white/5 border border-white/5 rounded-xl py-3 px-4 focus:outline-none focus:border-cyber-neon/40 transition-all text-white placeholder-slate-600;
+    @apply bg-white/5 border border-white/10 rounded-xl py-3 px-4 focus:outline-none focus:border-cyber-neon/50 focus:ring-1 focus:ring-cyber-neon/20 transition-all text-white placeholder-slate-600;
+  }
+
+  /* Status badges */
+  .badge-safe {
+    @apply px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-cyber-green/10 text-cyber-green border border-cyber-green/30;
+  }
+  .badge-warn {
+    @apply px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-amber-400/10 text-amber-400 border border-amber-400/30;
+  }
+  .badge-danger {
+    @apply px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest bg-cyber-neon-red/10 text-cyber-neon-red border border-cyber-neon-red/30;
+  }
+
+  /* Skeleton shimmer loader */
+  .skeleton {
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+  }
+
+  /* Live pulse dot */
+  .live-dot {
+    @apply w-1.5 h-1.5 rounded-full bg-cyber-green;
+    animation: pulse-ring 2s ease-out infinite;
   }
 }
 
+/* Radar sweep line */
 .radar-line {
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--color-cyber-neon), transparent);
@@ -66,7 +128,7 @@
 }
 
 .glow-text {
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+  text-shadow: 0 0 20px rgba(0, 243, 255, 0.3), 0 0 5px rgba(255, 255, 255, 0.2);
 }
 
 .grid-bg {
@@ -75,6 +137,7 @@
   background-size: 50px 50px;
 }
 
+/* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: #020205; }
 ::-webkit-scrollbar-thumb {
@@ -82,3 +145,9 @@
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover { background: rgba(0, 243, 255, 0.4); }
+
+/* Page entry animation */
+.page-enter {
+  animation: fadeSlideUp 0.4s ease forwards;
+}
+

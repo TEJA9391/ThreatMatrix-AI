@@ -23,9 +23,9 @@ if os.path.exists(frontend_folder):
 else:
     app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'cyber_secret_2026'
-CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'tm_secret_fallback_2026')
+CORS(app, origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5001"])
+socketio = SocketIO(app, cors_allowed_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5001", "*"])
 
 DATABASE_PATH = os.path.join(os.path.dirname(__file__), 'threatmatrix.db')
 
@@ -62,19 +62,22 @@ def get_db_connection():
 history_log = []
 phishing_submissions = []
 
-# Google Fact Check API Key
-GOOGLE_FACT_CHECK_API_KEY = "AIzaSyAUm6tlZUZnFR8DaxKZQSnBF-anvuhKPDE"
+# Google Fact Check API Key — load from environment, fallback to empty (disables live fact-check)
+GOOGLE_FACT_CHECK_API_KEY = os.environ.get('GOOGLE_FACT_CHECK_API_KEY', '')
 GOOGLE_FC_URL = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
+
+# Generate threat_trends slots dynamically around current hour
+def _make_trends():
+    now = datetime.now()
+    slots = []
+    for i in range(-4, 1):
+        h = (now.hour + i) % 24
+        slots.append({"time": f"{h:02d}:00", "threats": 0, "fraud": 0, "phishing": 0, "news": 0})
+    return slots
 
 stats_state = {
     "total_threats": 0, "fraud": 0, "phishing": 0, "fake_news": 0,
-    "threat_trends": [
-        {"time": "08:00", "threats": 0, "fraud": 0, "phishing": 0, "news": 0},
-        {"time": "09:00", "threats": 0, "fraud": 0, "phishing": 0, "news": 0},
-        {"time": "10:00", "threats": 0, "fraud": 0, "phishing": 0, "news": 0},
-        {"time": "11:00", "threats": 0, "fraud": 0, "phishing": 0, "news": 0},
-        {"time": "12:00", "threats": 0, "fraud": 0, "phishing": 0, "news": 0},
-    ]
+    "threat_trends": _make_trends()
 }
 
 # ─── PHISHING ENGINE ────────────────────────────────────────────────────────
@@ -644,17 +647,21 @@ def broadcast_activity(event_type, risk_level, details, id_prefix="USER"):
     new_event = {"id": f"{id_prefix}_{random.randint(1000,9999)}", "type": event_type,
                  "risk": risk_level, "time": timestamp, "details": details}
     stats_state["total_threats"] += 1
-    if event_type == "fraud": stats_state["fraud"] += 1
+    # darkweb events count under "fraud" key so Dashboard "Dark Web Scans" card updates
+    if event_type in ("fraud", "darkweb"): stats_state["fraud"] += 1
     elif event_type == "phishing": stats_state["phishing"] += 1
     elif event_type == "news": stats_state["fake_news"] += 1
     for point in stats_state["threat_trends"]:
         if point["time"] == current_hour:
             point["threats"] += 1
-            if event_type == "fraud": point["fraud"] += 1
+            if event_type in ("fraud", "darkweb"): point["fraud"] += 1
             elif event_type == "phishing": point["phishing"] += 1
             elif event_type == "news": point["news"] += 1
             break
     history_log.insert(0, new_event)
+    # Cap history at 200 entries to prevent unbounded memory growth
+    if len(history_log) > 200:
+        history_log.pop()
     socketio.emit('stream_update', {**stats_state, "new_event": new_event, "history": history_log})
 
 @socketio.on('connect')

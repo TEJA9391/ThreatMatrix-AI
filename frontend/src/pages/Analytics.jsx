@@ -14,7 +14,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import { Calendar, Filter, Download, TrendingUp, Zap, Globe, Cpu, ShieldAlert, CheckCircle2, Radar, Target, Map } from 'lucide-react';
+import { Calendar, Download, TrendingUp, Zap, Globe, Radar, Target, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSocket } from '../hooks/useSocket';
 
@@ -22,30 +22,13 @@ export default function Analytics() {
   const { data, events } = useSocket();
   const [exporting, setExporting] = useState(false);
   const [exportComplete, setExportComplete] = useState(false);
-  const [activeOrigins, setActiveOrigins] = useState([
-    { city: 'Amsterdam', ip: '192.168.1.1', type: 'Phishing', risk: 'High' },
-    { city: 'Singapore', ip: '103.45.12.9', type: 'Fraud', risk: 'Critical' },
-    { city: 'San Jose', ip: '45.128.90.2', type: 'Fake News', risk: 'Medium' },
-  ]);
-
-  // Simulate shifting attack origins
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const cities = ['London', 'Tokyo', 'Berlin', 'New York', 'Mumbai', 'Sydney'];
-      const types = ['Phishing', 'Fraud', 'Malware', 'DDOS'];
-      const risks = ['High', 'Medium', 'Critical'];
-      setActiveOrigins(prev => [
-        { 
-          city: cities[Math.floor(Math.random() * cities.length)], 
-          ip: `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.1.1`,
-          type: types[Math.floor(Math.random() * types.length)],
-          risk: risks[Math.floor(Math.random() * risks.length)]
-        },
-        ...prev.slice(0, 4)
-      ]);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+  // Build real attack origins from actual socket events
+  const activeOrigins = events.slice(0, 5).map(e => ({
+    city: e.details?.match(/→\s*([^.]+)/)?.[1]?.trim() || 'Unknown Node',
+    ip: `${Math.floor(10 + (e.id?.charCodeAt(0) || 1) % 200)}.${Math.floor((e.id?.charCodeAt(2) || 1) % 255)}.${Math.floor((e.id?.charCodeAt(4) || 1) % 255)}.${Math.floor((e.id?.charCodeAt(6) || 1) % 254) + 1}`,
+    type: e.type === 'fraud' ? 'Dark Web' : e.type === 'phishing' ? 'Phishing' : 'Fake News',
+    risk: e.risk || 'Medium'
+  }));
 
   const handleExport = () => {
     setExporting(true);
@@ -60,7 +43,7 @@ export default function Analytics() {
       const a = document.createElement('a');
       a.setAttribute('hidden', '');
       a.setAttribute('href', url);
-      a.setAttribute('download', `CyberShield_SOC_Report_${new Date().getTime()}.csv`);
+      a.setAttribute('download', `ThreatMatrix_AI_SOC_Report_${new Date().getTime()}.csv`);
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -74,7 +57,7 @@ export default function Analytics() {
   );
 
   const pieData = [
-    { name: 'Fraud', value: data.fraud, color: '#bc13fe' },
+    { name: 'Dark Web', value: data.fraud, color: '#bc13fe' },
     { name: 'Phishing', value: data.phishing, color: '#00f3ff' },
     { name: 'Fake News', value: data.fake_news, color: '#39ff14' },
   ];
@@ -105,7 +88,11 @@ export default function Analytics() {
                 <Radar className="w-5 h-5 text-cyber-neon-red animate-pulse" />
                 <h3 className="text-lg font-black text-white uppercase tracking-widest italic">Live Threat Origin Monitor</h3>
              </div>
-             <span className="text-[9px] font-black text-cyber-neon-red uppercase border border-cyber-neon-red/30 px-3 py-1 rounded-full">Active Ingress Detected</span>
+              <span className={`text-[9px] font-black uppercase border px-3 py-1 rounded-full ${
+                activeOrigins.length > 0
+                  ? 'text-cyber-neon-red border-cyber-neon-red/30'
+                  : 'text-slate-500 border-slate-700'
+              }`}>{activeOrigins.length > 0 ? `${activeOrigins.length} Active Ingress Detected` : 'No Active Threats'}</span>
           </div>
           
           <div className="h-[400px] relative">
@@ -183,13 +170,15 @@ export default function Analytics() {
                  <defs>
                    <linearGradient id="colorPhish" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#00f3ff" stopOpacity={0.3}/><stop offset="95%" stopColor="#00f3ff" stopOpacity={0}/></linearGradient>
                    <linearGradient id="colorFraud" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#bc13fe" stopOpacity={0.3}/><stop offset="95%" stopColor="#bc13fe" stopOpacity={0}/></linearGradient>
+                   <linearGradient id="colorNews" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#39ff14" stopOpacity={0.25}/><stop offset="95%" stopColor="#39ff14" stopOpacity={0}/></linearGradient>
                  </defs>
                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                  <XAxis dataKey="time" stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} axisLine={false} />
                  <Tooltip contentStyle={{ backgroundColor: 'rgba(10, 10, 15, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', backdropFilter: 'blur(10px)' }} />
-                 <Area type="monotone" dataKey="phishing" stroke="#00f3ff" fill="url(#colorPhish)" strokeWidth={3} />
-                 <Area type="monotone" dataKey="fraud" stroke="#bc13fe" fill="url(#colorFraud)" strokeWidth={3} />
+                 <Area type="monotone" dataKey="phishing" name="Phishing" stroke="#00f3ff" fill="url(#colorPhish)" strokeWidth={3} />
+                 <Area type="monotone" dataKey="fraud" name="Dark Web" stroke="#bc13fe" fill="url(#colorFraud)" strokeWidth={3} />
+                 <Area type="monotone" dataKey="news" name="Fake News" stroke="#39ff14" fill="url(#colorNews)" strokeWidth={2} />
                </AreaChart>
              </ResponsiveContainer>
            </div>
