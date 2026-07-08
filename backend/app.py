@@ -32,9 +32,14 @@ def init_db():
             role TEXT NOT NULL,
             level TEXT NOT NULL,
             bio TEXT,
-            avatar TEXT
+            avatar TEXT,
+            location TEXT
         )
     ''')
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN location TEXT")
+    except sqlite3.OperationalError:
+        pass
     conn.commit()
     conn.close()
 
@@ -617,6 +622,7 @@ def api_register():
     level = data.get('level', '3')
     bio = data.get('bio', '')
     avatar = data.get('avatar', 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop')
+    location = data.get('location', '')
 
     if not username or not email or not password:
         return jsonify({"error": "MISSING_FIELDS", "message": "All fields are required"}), 400
@@ -626,8 +632,8 @@ def api_register():
     conn = get_db_connection()
     try:
         conn.execute(
-            'INSERT INTO users (username, email, password_hash, role, level, bio, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            (username, email, password_hash, role, level, bio, avatar)
+            'INSERT INTO users (username, email, password_hash, role, level, bio, avatar, location) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            (username, email, password_hash, role, level, bio, avatar, location)
         )
         conn.commit()
     except sqlite3.IntegrityError:
@@ -643,7 +649,8 @@ def api_register():
             "role": role,
             "level": level,
             "bio": bio,
-            "avatar": avatar
+            "avatar": avatar,
+            "location": location
         }
     })
 
@@ -668,6 +675,13 @@ def api_login():
     if not user_row:
         return jsonify({"error": "INVALID_CREDENTIALS", "message": "Invalid access credentials"}), 401
 
+    # Extract location (if present, otherwise default to empty string)
+    user_loc = ''
+    try:
+        user_loc = user_row['location'] or ''
+    except IndexError:
+        pass
+
     return jsonify({
         "success": True,
         "user": {
@@ -676,7 +690,8 @@ def api_login():
             "role": user_row['role'],
             "level": user_row['level'],
             "bio": user_row['bio'],
-            "avatar": user_row['avatar']
+            "avatar": user_row['avatar'],
+            "location": user_loc
         }
     })
 
@@ -689,14 +704,15 @@ def api_update_profile():
     level = data.get('level')
     bio = data.get('bio')
     avatar = data.get('avatar')
+    location = data.get('location', '')
 
     if not username:
         return jsonify({"error": "MISSING_USERNAME", "message": "Username is required to update credentials"}), 400
 
     conn = get_db_connection()
     conn.execute(
-        'UPDATE users SET email = ?, role = ?, level = ?, bio = ?, avatar = ? WHERE username = ?',
-        (email, role, level, bio, avatar, username)
+        'UPDATE users SET email = ?, role = ?, level = ?, bio = ?, avatar = ?, location = ? WHERE username = ?',
+        (email, role, level, bio, avatar, location, username)
     )
     conn.commit()
     conn.close()

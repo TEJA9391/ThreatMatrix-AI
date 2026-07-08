@@ -9,6 +9,7 @@ const DEFAULT_USER = {
   level: '7',
   bio: 'Lead Cyber Threat Intelligence Analyst specializing in Neural Anomaly Detection and Global Risk Mitigation.',
   avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop',
+  location: '',
   notifications: false,
   twoFactor: true,
   stealthMode: false,
@@ -49,7 +50,7 @@ export function UserProvider({ children }) {
     }
   };
 
-  const register = async (username, email, role, level, bio, password) => {
+  const register = async (username, email, role, level, bio, password, location) => {
     try {
       const response = await axios.post('http://localhost:5001/api/auth/register', {
         username,
@@ -57,7 +58,8 @@ export function UserProvider({ children }) {
         role,
         level,
         bio,
-        password
+        password,
+        location
       });
       if (response.data.success) {
         const registeredUser = response.data.user;
@@ -92,7 +94,8 @@ export function UserProvider({ children }) {
         role: updated.role,
         level: updated.level,
         bio: updated.bio,
-        avatar: updated.avatar
+        avatar: updated.avatar,
+        location: updated.location
       }).catch(err => console.error("DB Update Sync Error:", err));
 
       return updated;

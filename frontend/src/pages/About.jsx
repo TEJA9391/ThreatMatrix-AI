@@ -6,8 +6,10 @@ import {
   ChevronRight, ArrowUpRight, User, Code
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useUser } from '../context/UserContext';
 
 export default function About() {
+  const { user, isAuthenticated } = useUser();
   const technologies = [
     { name: 'Neural Kernel', icon: Cpu, desc: 'Advanced AI Inference Engine' },
     { name: 'Socket Mainnet', icon: Zap, desc: 'Real-time Telemetry Synchronization' },
@@ -84,7 +86,7 @@ export default function About() {
                <div className="absolute inset-0 bg-cyber-purple/20 blur-3xl rounded-full" />
                <div className="w-36 h-36 rounded-[2.5rem] bg-gradient-to-tr from-cyber-blue to-cyber-purple p-[2px] relative z-10 mx-auto lg:mx-0">
                   <div className="w-full h-full rounded-[2.4rem] bg-black overflow-hidden relative">
-                     <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400" className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500" />
+                     <img src={isAuthenticated ? user?.avatar : "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400"} className="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-500" />
                   </div>
                </div>
                <div className="absolute -bottom-2 right-1/2 lg:right-4 translate-x-1/2 lg:translate-x-0 w-12 h-12 bg-cyber-purple rounded-2xl border-4 border-cyber-black flex items-center justify-center shadow-2xl z-20">
@@ -92,22 +94,26 @@ export default function About() {
                </div>
             </div>
 
-            <h3 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-2 text-center lg:text-left">BOORA RAVITEJA</h3>
-            <p className="text-[10px] font-black text-cyber-purple uppercase tracking-[0.4em] mb-10 text-center lg:text-left">Chief System Architect</p>
+            <h3 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-2 text-center lg:text-left">
+              {isAuthenticated ? user?.name : 'BOORA RAVITEJA'}
+            </h3>
+            <p className="text-[10px] font-black text-cyber-purple uppercase tracking-[0.4em] mb-10 text-center lg:text-left">
+              {isAuthenticated ? user?.role : 'Chief System Architect'}
+            </p>
             
             <div className="space-y-3">
                {[
-                 { icon: Mail, val: 'raviteja@threatmatrix.ai', label: 'OFFICIAL_EMAIL' },
-                 { icon: MapPin, val: 'HYDERABAD, INDIA', label: 'SOC_LOCATION' },
+                 { icon: Mail, val: isAuthenticated ? user?.email : 'raviteja@threatmatrix.ai', label: 'OFFICIAL_EMAIL' },
+                 (isAuthenticated && user?.location) ? { icon: MapPin, val: user?.location, label: 'SOC_LOCATION' } : null,
                  { icon: Globe, val: 'threatmatrix.ai', label: 'SYSTEM_URL' },
-               ].map((info, i) => (
-                 <div key={i} className="flex items-center gap-5 p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors">
-                    <info.icon className="w-4 h-4 text-cyber-neon shrink-0" />
-                    <div>
-                       <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1">{info.label}</p>
-                       <p className="text-xs font-bold text-slate-300">{info.val}</p>
-                    </div>
-                 </div>
+               ].filter(Boolean).map((info, i) => (
+                  <div key={i} className="flex items-center gap-5 p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors">
+                     <info.icon className="w-4 h-4 text-cyber-neon shrink-0" />
+                     <div>
+                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest leading-none mb-1">{info.label}</p>
+                        <p className="text-xs font-bold text-slate-300">{info.val}</p>
+                     </div>
+                  </div>
                ))}
             </div>
          </div>

@@ -21,7 +21,8 @@ export default function Auth() {
     password: '',
     role: 'Security Analyst',
     level: '3',
-    bio: ''
+    bio: '',
+    location: ''
   });
   
   const [showPassword, setShowPassword] = useState(false);
@@ -99,7 +100,8 @@ export default function Auth() {
         formData.role, 
         formData.level, 
         formData.bio,
-        formData.password
+        formData.password,
+        formData.location
       );
     } else {
       result = await login(formData.username, formData.password);
@@ -237,6 +239,18 @@ export default function Auth() {
                         placeholder="e.g. Threat response operator specializing in zero-day network forensics."
                         rows="3"
                         className="w-full px-4 py-3 bg-white/[0.02] border border-white/10 focus:border-cyber-neon/40 hover:border-white/20 rounded-xl text-sm font-bold text-white placeholder-slate-600 transition-all duration-300 outline-none resize-none"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Operational Location (Optional)</label>
+                      <input 
+                        type="text" 
+                        name="location"
+                        value={formData.location}
+                        onChange={handleChange}
+                        placeholder="e.g. Hyderabad, India"
+                        className="w-full px-4 py-3 bg-white/[0.02] border border-white/10 focus:border-cyber-neon/40 hover:border-white/20 rounded-xl text-sm font-bold text-white placeholder-slate-600 transition-all duration-300 outline-none"
                       />
                     </div>
                   </>
