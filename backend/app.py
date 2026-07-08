@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 import random
@@ -13,7 +13,14 @@ import os
 import requests
 import sqlite3
 
-app = Flask(__name__)
+# Serve React Frontend in production if build output is present
+frontend_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist'))
+
+if os.path.exists(frontend_folder):
+    app = Flask(__name__, static_folder=frontend_folder, static_url_path='')
+else:
+    app = Flask(__name__)
+
 app.config['SECRET_KEY'] = 'cyber_secret_2026'
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -737,6 +744,17 @@ def background_threat_simulator():
             "news": f"Misinformation spike near {entity}"
         }
         broadcast_activity(t_type, risk, details[t_type], id_prefix="AUTO")
+
+# catch-all route for frontend static files
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    if not app.static_folder:
+        return jsonify({"error": "NOT_CONFIGURED", "message": "Frontend static assets not built"}), 500
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
     threading.Thread(target=background_threat_simulator, daemon=True).start()

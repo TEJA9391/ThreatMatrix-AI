@@ -6,7 +6,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_BASE = 'http://localhost:5001/api';
+import { API_BASE as CONFIG_API_BASE } from '../config';
+const API_BASE = `${CONFIG_API_BASE}/api`;
 
 export default function PhishingDetection() {
   const [url, setUrl] = useState('');

@@ -19,6 +19,7 @@ const DEFAULT_USER = {
 };
 
 import axios from 'axios';
+import { API_BASE } from '../config';
 
 export function UserProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -32,7 +33,7 @@ export function UserProvider({ children }) {
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/login', {
+      const response = await axios.post(`${API_BASE}/api/auth/login`, {
         username,
         password
       });
@@ -52,7 +53,7 @@ export function UserProvider({ children }) {
 
   const register = async (username, email, role, level, bio, password, location) => {
     try {
-      const response = await axios.post('http://localhost:5001/api/auth/register', {
+      const response = await axios.post(`${API_BASE}/api/auth/register`, {
         username,
         email,
         role,
@@ -88,7 +89,7 @@ export function UserProvider({ children }) {
       localStorage.setItem('tm_user', JSON.stringify(updated));
       
       // Sync DB in background
-      axios.post('http://localhost:5001/api/auth/update', {
+      axios.post(`${API_BASE}/api/auth/update`, {
         username: updated.name,
         email: updated.email,
         role: updated.role,

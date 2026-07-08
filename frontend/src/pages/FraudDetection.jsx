@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { API_BASE } from '../config';
+
 export default function FraudDetection() {
   const [formData, setFormData] = useState({ amount: '', time: '', location: '', merchant: '' });
   const [result, setResult] = useState(null);
@@ -20,7 +22,7 @@ export default function FraudDetection() {
     setLoading(true);
     setResult(null);
     try {
-      const response = await axios.post('http://localhost:5001/api/fraud', { ...formData, amount: parseFloat(formData.amount) });
+      const response = await axios.post(`${API_BASE}/api/fraud`, { ...formData, amount: parseFloat(formData.amount) });
       setResult(response.data);
       const newScan = { id: `FRD_${Math.floor(Math.random() * 999)}`, merchant: formData.merchant, amount: parseFloat(formData.amount), location: formData.location, status: response.data.prediction, risk: response.data.risk_score, time: formData.time };
       setHistory(prev => [newScan, ...prev]);

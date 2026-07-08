@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { API_BASE } from '../config';
+
 export default function FakeNewsDetection() {
   const [text, setText] = useState('');
   const [result, setResult] = useState(null);
@@ -18,13 +20,13 @@ export default function FakeNewsDetection() {
     if (!text.trim()) return;
     setLoading(true); setResult(null); setError(null);
     try {
-      const response = await axios.post('http://localhost:5001/api/fake-news', { text });
+      const response = await axios.post(`${API_BASE}/api/fake-news`, { text });
       setResult(response.data);
     } catch (err) {
       if (err.response?.data?.error === 'INVALID_INPUT') {
         setError({ message: err.response.data.message || 'Text too short. Paste a full headline or paragraph.' });
       } else if (!err.response) {
-        setError({ message: 'Network Error: Backend offline. Start the Flask server on port 5001.' });
+        setError({ message: `Network Error: Backend offline. Start the Flask server on ${API_BASE}.` });
       } else {
         setError({ message: 'Analysis failed. Please try again.' });
       }
