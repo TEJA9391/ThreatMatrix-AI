@@ -21,7 +21,7 @@ const navItems = [
 
 export default function Sidebar() {
   const { isConnected, events } = useSocket();
-  const { user } = useUser();
+  const { user, isAuthenticated, logout } = useUser();
   const [pulse, setPulse] = useState(false);
   const [blocklist, setBlocklist] = useState([
     { ip: '192.168.45.1', time: '2m ago', risk: 'High' },
@@ -143,21 +143,48 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <NavLink to="/profile" className="flex items-center justify-between px-2 group">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-cyber-purple blur-[5px] opacity-0 group-hover:opacity-40 transition-opacity rounded-lg" />
-              <div className="w-8 h-8 rounded-lg bg-cyber-purple/10 border border-cyber-purple/30 flex items-center justify-center overflow-hidden relative">
-                 <img src={user.avatar} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-              </div>
-            </div>
-            <div className="text-left">
-              <p className="text-xs font-bold text-white group-hover:text-cyber-neon transition-colors uppercase italic tracking-tighter">{user.name}</p>
-              <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest">LV. {user.level} AUTHORIZED</p>
-            </div>
+        {!isAuthenticated ? (
+          <div className="flex flex-col gap-2 pt-2">
+            <NavLink
+              to="/login"
+              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-cyber-neon/10 hover:bg-cyber-neon/20 border border-cyber-neon/30 hover:border-cyber-neon/60 rounded-xl transition-all duration-300 text-white font-black text-[10px] uppercase tracking-wider group"
+            >
+              <Lock className="w-3.5 h-3.5 text-cyber-neon group-hover:scale-110 transition-transform" />
+              Login
+            </NavLink>
+            <NavLink
+              to="/register"
+              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/15 rounded-xl transition-all duration-300 text-slate-400 hover:text-white font-black text-[10px] uppercase tracking-wider group"
+            >
+              <User className="w-3.5 h-3.5 text-cyber-purple group-hover:scale-110 transition-transform" />
+              Register
+            </NavLink>
           </div>
-          <Activity className={`w-3.5 h-3.5 text-cyber-purple transition-opacity ${pulse ? 'opacity-100' : 'opacity-30'}`} />
-        </NavLink>
+        ) : (
+          <div className="space-y-3 pt-2">
+            <NavLink to="/profile" className="flex items-center justify-between px-2 group">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-cyber-purple blur-[5px] opacity-0 group-hover:opacity-40 transition-opacity rounded-lg" />
+                  <div className="w-8 h-8 rounded-lg bg-cyber-purple/10 border border-cyber-purple/30 flex items-center justify-center overflow-hidden relative">
+                     <img src={user?.avatar} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-bold text-white group-hover:text-cyber-neon transition-colors uppercase italic tracking-tighter">{user?.name}</p>
+                  <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest">LV. {user?.level} AUTHORIZED</p>
+                </div>
+              </div>
+              <Activity className={`w-3.5 h-3.5 text-cyber-purple transition-opacity ${pulse ? 'opacity-100' : 'opacity-30'}`} />
+            </NavLink>
+            <button
+              onClick={logout}
+              className="flex items-center justify-center gap-2 w-full py-2 border border-cyber-neon-red/20 hover:border-cyber-neon-red/40 bg-cyber-neon-red/5 hover:bg-cyber-neon-red/10 rounded-xl transition-all duration-300 text-cyber-neon-red font-black text-[9px] uppercase tracking-wider cursor-pointer"
+            >
+              Disconnect (Logout)
+            </button>
+          </div>
+        )}
       </div>
     </aside>
   );

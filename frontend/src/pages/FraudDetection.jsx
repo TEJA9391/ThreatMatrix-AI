@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { 
   ShieldAlert, Send, Info, Activity, Zap, Landmark, MapPin, Clock, 
-  ShieldCheck, ChevronRight, AlertTriangle, ListFilter, Globe, Star 
+  ShieldCheck, ChevronRight, AlertTriangle, ListFilter, Globe, Star, XCircle 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,8 +24,13 @@ export default function FraudDetection() {
       setResult(response.data);
       const newScan = { id: `FRD_${Math.floor(Math.random() * 999)}`, merchant: formData.merchant, amount: parseFloat(formData.amount), location: formData.location, status: response.data.prediction, risk: response.data.risk_score, time: formData.time };
       setHistory(prev => [newScan, ...prev]);
-    } catch (error) {
-      console.error("Fraud detection failed:", error);
+    } catch (err) {
+      console.error("Fraud audit failed:", err);
+      if (!err.response) {
+        setResult({ error: "Network Error: Neural Core (Backend) is offline. Please start the Flask server." });
+      } else {
+        setResult({ error: "Audit failed. Please check your input parameters and retry." });
+      }
     } finally {
       setLoading(false);
     }
@@ -76,7 +81,23 @@ export default function FraudDetection() {
 
         <div className="space-y-8">
           <AnimatePresence mode="wait">
-            {result && (
+            {result && result.error && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="cyber-card border-cyber-neon-red/40 bg-cyber-neon-red/5 flex items-center gap-6 p-8"
+              >
+                <div className="p-4 bg-cyber-neon-red/10 rounded-2xl">
+                   <XCircle className="w-10 h-10 text-cyber-neon-red" />
+                </div>
+                <div>
+                   <h4 className="text-xl font-black text-cyber-neon-red uppercase tracking-tight">Audit Failed</h4>
+                   <p className="text-slate-400 mt-1 font-bold text-sm italic">{result.error}</p>
+                </div>
+              </motion.div>
+            )}
+
+            {result && !result.error && (
               <motion.div key="result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
                 {(() => {
                   const visuals = getRiskVisuals(result.risk_score, result.prediction);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import Background from './Background';
@@ -12,17 +13,41 @@ export default function Layout({ children }) {
   const { events } = useSocket();
   const { user } = useUser();
   const [notification, setNotification] = useState(null);
+  const location = useLocation();
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+
+  const lastEventIdRef = React.useRef(null);
 
   useEffect(() => {
     if (user?.notifications && events.length > 0) {
       const latest = events[0];
-      if (latest.risk === 'High' || latest.risk === 'Critical' || latest.risk === 'Medium') {
+      
+      // Only trigger for NEW events of High or Critical risk
+      if (latest.id !== lastEventIdRef.current && 
+          (latest.risk === 'High' || latest.risk === 'Critical')) {
+        
+        lastEventIdRef.current = latest.id;
         setNotification(latest);
-        const timer = setTimeout(() => setNotification(null), 6000);
+        
+        const timer = setTimeout(() => {
+          setNotification(prev => prev?.id === latest.id ? null : prev);
+        }, 6000);
+        
         return () => clearTimeout(timer);
       }
     }
   }, [events, user?.notifications]);
+
+  if (isAuthPage) {
+    return (
+      <div className="min-h-screen bg-cyber-black text-slate-300 font-sans selection:bg-cyber-neon/30 selection:text-white relative flex items-center justify-center">
+        <Background />
+        <div className="relative z-10 w-full">
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cyber-black text-slate-300 font-sans selection:bg-cyber-neon/30 selection:text-white relative">
@@ -42,6 +67,7 @@ export default function Layout({ children }) {
 
         <SystemConsole />
       </div>
+
 
       {/* Real-time Global Notifications */}
       <AnimatePresence>

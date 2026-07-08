@@ -40,13 +40,25 @@ export default function PhishingDetection() {
       setResult(response.data);
       fetchSubmissions();
     } catch (err) {
+      console.error("Scan failed:", err);
       if (err.response && err.response.data.error === "INVALID_INPUT") {
         setError(err.response.data);
+      } else if (!err.response) {
+        setError({ message: "Network Error: System Core (Backend) is offline. Please start the Flask server." });
       } else {
         setError({ message: "An unexpected error occurred. Please ensure your URL is correct." });
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVote = async (id, type) => {
+    try {
+      await axios.post(`${API_BASE}/phishing/vote`, { id, type });
+      fetchSubmissions();
+    } catch (error) {
+      console.error("Vote failed:", error);
     }
   };
 
@@ -274,19 +286,35 @@ export default function PhishingDetection() {
                   </div>
                 </div>
 
-                {/* Reasoning Section */}
+                {/* 10-Signal Analysis Grid */}
                 <div className="md:col-span-3 cyber-card bg-black/60 border-white/10 relative overflow-hidden">
                    <div className="flex items-center gap-3 mb-6">
                       <ListFilter className="w-5 h-5 text-cyber-neon" />
-                      <h4 className="text-sm font-black text-white uppercase tracking-widest">Audit Logs & Reasoning</h4>
+                      <h4 className="text-sm font-black text-white uppercase tracking-widest">10-Signal Threat Analysis</h4>
                    </div>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {result.reasons?.map((reason, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-4 bg-white/5 border border-white/5 rounded-xl text-xs text-slate-300 font-medium">
-                           <div className={`w-1.5 h-1.5 rounded-full ${reason.includes('+') ? 'bg-cyber-neon-red' : reason.includes('-') ? 'bg-cyber-green' : 'bg-cyber-neon'}`} />
-                           {reason}
-                        </div>
-                      ))}
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {result.signals?.map((sig, idx) => {
+                        const isPass = sig.status === 'PASS';
+                        const isWarn = sig.status === 'WARN';
+                        const borderCls = isPass ? 'border-cyber-green/20 bg-cyber-green/5' : isWarn ? 'border-amber-400/20 bg-amber-400/5' : 'border-cyber-neon-red/20 bg-cyber-neon-red/5';
+                        const dotCls = isPass ? 'bg-cyber-green' : isWarn ? 'bg-amber-400' : 'bg-cyber-neon-red';
+                        const labelCls = isPass ? 'text-cyber-green' : isWarn ? 'text-amber-400' : 'text-cyber-neon-red';
+                        return (
+                          <div key={idx} className={`p-4 rounded-xl border ${borderCls} flex flex-col gap-1.5`}>
+                            <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${dotCls}`} />
+                              <span className="text-[10px] font-black text-white uppercase tracking-wide">{sig.label}</span>
+                              <span className={`ml-auto text-[9px] font-black uppercase ${labelCls}`}>{sig.status}</span>
+                            </div>
+                            <p className="text-[11px] text-slate-400 leading-relaxed pl-4">{sig.detail}</p>
+                            {sig.weight !== 0 && (
+                              <div className={`text-[9px] font-black uppercase pl-4 ${sig.weight > 0 ? 'text-cyber-neon-red' : 'text-cyber-green'}`}>
+                                {sig.weight > 0 ? `+${sig.weight}` : sig.weight} risk pts
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                    </div>
                 </div>
 

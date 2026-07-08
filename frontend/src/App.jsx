@@ -9,6 +9,7 @@ import Analytics from './pages/Analytics';
 import History from './pages/History';
 import Profile from './pages/Profile';
 import About from './pages/About';
+import Auth from './pages/Auth';
 import { UserProvider } from './context/UserContext.jsx';
 
 function App() {
@@ -25,6 +26,8 @@ function App() {
             <Route path="/history" element={<History />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/about" element={<About />} />
+            <Route path="/login" element={<Auth />} />
+            <Route path="/register" element={<Auth />} />
           </Routes>
         </Layout>
       </Router>
@@ -33,3 +36,4 @@ function App() {
 }
 
 export default App;
+

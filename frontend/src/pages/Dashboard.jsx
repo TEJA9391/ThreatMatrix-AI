@@ -47,21 +47,34 @@ export default function Dashboard() {
   }, []);
 
   // Hybrid Intelligence Mesh - High Visibility
+  const particlesRef = useRef([]);
+
   useEffect(() => {
+    if (!data) return; // Wait for data to be ready so the canvas is rendered
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let animationFrame;
+    
+    // Explicitly set dimensions based on rendered size
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      
+      particlesRef.current = Array.from({ length: 50 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: (Math.random() - 0.5) * 1.2,
+        size: Math.random() * 2 + 1,
+        pulse: 0,
+        isCore: Math.random() > 0.85
+      }));
+    };
 
-    const particles = Array.from({ length: 50 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 1.2,
-      vy: (Math.random() - 0.5) * 1.2,
-      size: Math.random() * 2 + 1,
-      pulse: 0,
-      isCore: Math.random() > 0.85
-    }));
+    resize();
+    window.addEventListener('resize', resize);
 
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -72,52 +85,69 @@ export default function Dashboard() {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      particles.forEach((p, i) => {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      if (particlesRef.current.length > 0) {
+        particlesRef.current.forEach((p, i) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
 
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j];
-          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
-          if (dist < 110) {
-            const opacity = (1 - dist / 110) * 0.2;
-            ctx.strokeStyle = p.isCore || p2.isCore ? `rgba(188, 19, 254, ${opacity})` : `rgba(0, 243, 255, ${opacity})`;
-            ctx.lineWidth = 0.8;
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p2.x, p2.y);
-            ctx.stroke();
-            if (Math.random() > 0.998) { p.pulse = 1; p2.pulse = 1; }
+          for (let j = i + 1; j < particlesRef.current.length; j++) {
+            const p2 = particlesRef.current[j];
+            const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+            if (dist < 110) {
+              const opacity = (1 - dist / 110) * 0.2;
+              ctx.strokeStyle = p.isCore || p2.isCore ? `rgba(188, 19, 254, ${opacity})` : `rgba(0, 243, 255, ${opacity})`;
+              ctx.lineWidth = 0.8;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+              if (Math.random() > 0.998) { p.pulse = 1; p2.pulse = 1; }
+            }
           }
-        }
 
-        const color = p.isCore ? 'rgba(188, 19, 254, 0.9)' : 'rgba(0, 243, 255, 0.9)';
-        ctx.fillStyle = color;
-        ctx.shadowBlur = p.pulse * 15;
-        ctx.shadowColor = color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size + p.pulse * 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
+          const color = p.isCore ? 'rgba(188, 19, 254, 0.9)' : 'rgba(0, 243, 255, 0.9)';
+          ctx.fillStyle = color;
+          ctx.shadowBlur = p.pulse * 15;
+          ctx.shadowColor = color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size + p.pulse * 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
 
-        if (p.pulse > 0) p.pulse *= 0.96;
-      });
+          if (p.pulse > 0) p.pulse *= 0.96;
+        });
+      }
 
       animationFrame = requestAnimationFrame(render);
     };
     render();
-    return () => cancelAnimationFrame(animationFrame);
-  }, [canvasRef.current]);
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener('resize', resize);
+    };
+  }, [data]); 
+
+  const lastProcessedId = useRef(null);
 
   useEffect(() => {
     if (events.length > 0) {
       const latest = events[0];
-      setMitigationLogs(prev => [
-        { id: `ACT-${Math.floor(Math.random() * 999)}`, msg: `Neutralized ${latest.type} vector.`, status: 'SUCCESS' },
-        ...prev.slice(0, 4)
-      ]);
+      if (latest.id !== lastProcessedId.current) {
+        lastProcessedId.current = latest.id;
+        
+        // Trigger a visual pulse in the Intelligence Mesh core
+        particlesRef.current.forEach(p => {
+          if (p.isCore) p.pulse = 2;
+          else if (Math.random() > 0.7) p.pulse = 1;
+        });
+
+        setMitigationLogs(prev => [
+          { id: `ACT-${Math.floor(Math.random() * 999)}`, msg: `Neutralized ${latest.type} vector.`, status: 'SUCCESS' },
+          ...prev.slice(0, 4)
+        ]);
+      }
     }
   }, [events]);
 

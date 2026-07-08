@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { 
   User, ShieldCheck, Zap, Bell, Lock, Key, Globe, 
-  Camera, CheckCircle2, AlertTriangle, Cpu, Mail, 
-  Terminal, ExternalLink, Settings, Save, X, RotateCw, Image, Upload, Trash2
+  Camera, CheckCircle2, AlertTriangle, Cpu, 
+  Terminal, ExternalLink, Settings, Save, X, RotateCw, Image, Upload, Trash2, Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSocket } from '../hooks/useSocket';
