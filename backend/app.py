@@ -12,6 +12,8 @@ from urllib.parse import urlparse
 import os
 import requests
 import sqlite3
+import socket
+
 
 # Serve React Frontend in production if build output is present
 frontend_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist'))
@@ -96,13 +98,52 @@ PHISHING_TLDS = [".tk", ".ml", ".ga", ".cf", ".gq", ".pw", ".xyz", ".top",
 
 LEGIT_INDICATORS = ["https", "www", ".com", ".org", ".edu", ".gov", ".net"]
 
+def calculate_entropy(s):
+    if not s:
+        return 0
+    entropy = 0
+    for x in set(s):
+        p_x = s.count(x) / len(s)
+        entropy += - p_x * math.log2(p_x)
+    return entropy
+
+def get_similarity(s1, s2):
+    if len(s1) < len(s2):
+        return get_similarity(s2, s1)
+    if len(s2) == 0:
+        return len(s1)
+    previous_row = range(len(s2) + 1)
+    for i, c1 in enumerate(s1):
+        current_row = [i + 1]
+        for j, c2 in enumerate(s2):
+            insertions = previous_row[j + 1] + 1
+            deletions = current_row[j] + 1
+            substitutions = previous_row[j] + (c1 != c2)
+            current_row.append(min(insertions, deletions, substitutions))
+        previous_row = current_row
+    return previous_row[-1]
+
 def analyze_phishing_url(url):
     signals = []
     score = 0
-    parsed = urlparse(url)
+    
+    # Ensure scheme is present for parsing
+    if not url.startswith(("http://", "https://")):
+        url_to_parse = "http://" + url
+    else:
+        url_to_parse = url
+        
+    parsed = urlparse(url_to_parse)
     domain = parsed.netloc.lower().replace("www.", "")
     path = parsed.path.lower()
-    full = url.lower()
+    full = url_to_parse.lower()
+
+    if not domain:
+        # Fallback split
+        try:
+            domain = url_to_parse.split('/')[2].replace("www.", "")
+        except IndexError:
+            domain = url_to_parse.replace("www.", "")
 
     # Signal 1: SSL/HTTPS check
     if url.startswith("https://"):
@@ -130,7 +171,19 @@ def analyze_phishing_url(url):
     else:
         signals.append({"label": "Brand Impersonation", "status": "PASS", "detail": "No brand spoofing patterns detected", "weight": 0})
 
-    # Signal 4: Suspicious keywords in URL
+    # Signal 4: Typosquatting Detection
+    typosquatted = False
+    for td in TRUSTED_DOMAINS:
+        dist = get_similarity(domain, td)
+        if 0 < dist <= 2:  # Very close edit distance (1 or 2 character changes)
+            typosquatted = True
+            signals.append({"label": "Typosquatting Detection", "status": "FAIL", "detail": f"Spoof pattern: Domain edit distance is close to trusted brand '{td}'", "weight": 35})
+            score += 35
+            break
+    if not typosquatted:
+        signals.append({"label": "Typosquatting Detection", "status": "PASS", "detail": "No typosquatting signatures found", "weight": 0})
+
+    # Signal 5: Suspicious keywords in URL
     found_kw = [kw for kw in PHISHING_KEYWORDS if kw in full]
     if len(found_kw) >= 3:
         signals.append({"label": "Suspicious Keywords", "status": "FAIL", "detail": f"High-risk keywords: {', '.join(found_kw[:4])}", "weight": 25})
@@ -141,14 +194,14 @@ def analyze_phishing_url(url):
     else:
         signals.append({"label": "Suspicious Keywords", "status": "PASS", "detail": "No suspicious keywords in URL path", "weight": 0})
 
-    # Signal 5: IP address as host
+    # Signal 6: IP address as host
     if re.match(r"^\d{1,3}(\.\d{1,3}){3}", domain):
         signals.append({"label": "IP-Based Host", "status": "FAIL", "detail": "URL uses raw IP address — high phishing indicator", "weight": 30})
         score += 30
     else:
         signals.append({"label": "IP-Based Host", "status": "PASS", "detail": "Domain-based host — normal pattern", "weight": 0})
 
-    # Signal 6: URL length
+    # Signal 7: URL length
     url_len = len(url)
     if url_len > 100:
         signals.append({"label": "URL Length", "status": "FAIL", "detail": f"Abnormally long URL ({url_len} chars) — obfuscation likely", "weight": 15})
@@ -159,7 +212,7 @@ def analyze_phishing_url(url):
     else:
         signals.append({"label": "URL Length", "status": "PASS", "detail": f"URL length normal ({url_len} chars)", "weight": 0})
 
-    # Signal 7: Suspicious TLD
+    # Signal 8: TLD Analysis
     bad_tld = [t for t in PHISHING_TLDS if domain.endswith(t)]
     if bad_tld:
         signals.append({"label": "TLD Analysis", "status": "FAIL", "detail": f"High-risk TLD detected: '{bad_tld[0]}' — frequently abused", "weight": 25})
@@ -167,7 +220,7 @@ def analyze_phishing_url(url):
     else:
         signals.append({"label": "TLD Analysis", "status": "PASS", "detail": "TLD is standard and not flagged", "weight": 0})
 
-    # Signal 8: Subdomain depth
+    # Signal 9: Subdomain depth
     parts = domain.split(".")
     subdomain_count = len(parts) - 2
     if subdomain_count >= 3:
@@ -179,7 +232,7 @@ def analyze_phishing_url(url):
     else:
         signals.append({"label": "Subdomain Depth", "status": "PASS", "detail": "Normal subdomain structure", "weight": 0})
 
-    # Signal 9: Special chars / obfuscation
+    # Signal 10: Special chars / obfuscation
     special_chars = len(re.findall(r"[@%\-_~]", url))
     if special_chars >= 4:
         signals.append({"label": "URL Obfuscation", "status": "FAIL", "detail": f"{special_chars} special characters — likely obfuscated", "weight": 15})
@@ -190,7 +243,7 @@ def analyze_phishing_url(url):
     else:
         signals.append({"label": "URL Obfuscation", "status": "PASS", "detail": "No unusual obfuscation patterns", "weight": 0})
 
-    # Signal 10: Redirect/query string depth
+    # Signal 11: Query Complexity
     query = parsed.query
     if len(query) > 80 or query.count("=") > 4:
         signals.append({"label": "Query Complexity", "status": "FAIL", "detail": "Complex query string — possible redirect chain", "weight": 15})
@@ -198,10 +251,32 @@ def analyze_phishing_url(url):
     else:
         signals.append({"label": "Query Complexity", "status": "PASS", "detail": "Query parameters appear normal", "weight": 0})
 
+    # Signal 12: Shannon Lexical Entropy Check
+    entropy = calculate_entropy(domain)
+    if entropy > 4.2:
+        signals.append({"label": "Lexical Entropy", "status": "FAIL", "detail": f"High character entropy ({entropy:.2f}) — random domain DGA pattern", "weight": 25})
+        score += 25
+    elif entropy > 3.8:
+        signals.append({"label": "Lexical Entropy", "status": "WARN", "detail": f"Moderately high entropy ({entropy:.2f})", "weight": 10})
+        score += 10
+    else:
+        signals.append({"label": "Lexical Entropy", "status": "PASS", "detail": f"Normal entropy ({entropy:.2f})", "weight": 0})
+
+    # Signal 13: Live DNS Resolution
+    dns_resolved = False
+    try:
+        ip_resolved = socket.gethostbyname(domain)
+        dns_resolved = True
+        signals.append({"label": "DNS Resolution", "status": "PASS", "detail": f"Domain resolved successfully to: {ip_resolved}", "weight": -15})
+        score -= 15
+    except Exception:
+        signals.append({"label": "DNS Resolution", "status": "FAIL", "detail": "Domain failed DNS lookup or is offline", "weight": 40})
+        score += 40
+
     score = max(0, min(score, 100))
-    if score < 25:
+    if score < 30:
         prediction, risk_level = "Safe", "Low"
-    elif score < 55:
+    elif score < 60:
         prediction, risk_level = "Suspicious", "Medium"
     else:
         prediction, risk_level = "Malicious", "High"
